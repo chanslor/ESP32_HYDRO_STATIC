@@ -2,13 +2,16 @@
 
 ## Hardware Overview
 
-This system uses a **Heltec WiFi LoRa 32 V3** board with built-in OLED display to monitor water tank levels via a 4-20 mA hydrostatic pressure sensor.
+This system uses a **Heltec WiFi LoRa 32 V3** board with built-in OLED display to monitor water tank levels via a 4-20 mA hydrostatic pressure sensor and soil/rain moisture via an LM393 sensor.
 
 **Components:**
 - Heltec WiFi LoRa 32 V3 (ESP32-S3 with built-in OLED)
-- INA219 Current Sensor Module
-- ALS-MPM-2F Hydrostatic Sensor (4-20 mA)
-- 19.5V Dell Power Supply
+- LM393 Soil Moisture Sensor (for rain/moisture detection)
+- INA219 Current Sensor Module (optional - for water level)
+- ALS-MPM-2F Hydrostatic Sensor (4-20 mA) (optional - for water level)
+- 19.5V Dell Power Supply (only needed for hydrostatic sensor)
+
+**Note:** The INA219 and hydrostatic sensor are optional. If not connected, the system will continue to operate with moisture readings only.
 
 ## Required Libraries
 
@@ -57,7 +60,20 @@ Think of the INA219 as a "current-to-digital" converter - it's the essential bri
 
 ## Wiring
 
-### INA219 to Heltec V3 (Header J3 - Left Side)
+### LM393 Soil Moisture Sensor to Heltec V3 (Header J3 - Left Side)
+
+![LM393 Soil Moisture Sensor](images/soil_moisture_sensor.jpg)
+
+```
+LM393       Heltec V3
+------      ---------
+VCC   →     3V3 (Pin 2 or 3)
+GND   →     GND (Pin 1)
+AO    →     GPIO 4 (Pin 15) - Analog output
+DO    →     (not connected)
+```
+
+### INA219 to Heltec V3 (Header J3 - Left Side) - Optional
 ```
 INA219      Heltec V3
 ------      ---------
@@ -67,7 +83,7 @@ SDA   →     GPIO 1 (Pin 12)
 SCL   →     GPIO 2 (Pin 13)
 ```
 
-### Current Loop
+### Current Loop (only if using hydrostatic sensor)
 ```
 Dell PSU White (+19.5V) → INA219 VIN+
 INA219 VIN-             → Sensor RED (+V)
@@ -133,7 +149,7 @@ arduino-cli monitor -p /dev/ttyUSB0 -c baudrate=115200
 
 ## Expected Output
 
-### Serial Monitor (115200 baud)
+### Serial Monitor (115200 baud) - With INA219
 ```
 Heltec WiFi LoRa 32 - Hydrostatic Water Level Sensor
 ====================================================
@@ -141,6 +157,7 @@ Board: Heltec WiFi LoRa 32 V3
 I2C: OLED on GPIO17/18, INA219 on GPIO1/2
 INA219 initialized successfully
 Built-in OLED display initialized successfully
+Soil moisture sensor on GPIO4
 
 Tank depth range: 0 - 100 cm
 Current range: 4 - 20 mA
@@ -148,24 +165,42 @@ Current range: 4 - 20 mA
 Starting measurements...
 ====================================================
 
---- Water Level Reading ---
+--- Sensor Reading ---
 Current: 7.46 mA
 Depth: 8.5 in (21.6%)
+Moisture: 45.2% (raw: 2850)
+```
 
---- Water Level Reading ---
-Current: 12.05 mA
-Depth: 1 ft 7.8 in (50.3%)
+### Serial Monitor - Without INA219 (Moisture Only)
+```
+Heltec WiFi LoRa 32 - Hydrostatic Water Level Sensor
+====================================================
+Board: Heltec WiFi LoRa 32 V3
+I2C: OLED on GPIO17/18, INA219 on GPIO1/2
+Failed to find INA219 chip - water level disabled
+Check wiring to GPIO1 (SDA) and GPIO2 (SCL)
+Built-in OLED display initialized successfully
+Soil moisture sensor on GPIO4
+
+Starting measurements...
+====================================================
+
+--- Sensor Reading ---
+Water level: N/A (INA219 not connected)
+Moisture: 45.2% (raw: 2850)
 ```
 
 ### Built-in OLED Display
 
 The 0.96" built-in OLED shows:
-- **Title**: "Water Level Reading"
-- **Current**: Loop current in mA
+- **Header**: Tank % and Moisture % summary
+- **Current**: Loop current in mA (if INA219 connected)
 - **Depth**: Large text showing:
   - Under 12": "8.5 in"
   - 12" or more: "1 ft 7.8 in"
-- **Percentage**: Tank fill percentage
+- **Moisture**: Moisture percentage at bottom
+
+If INA219 is not connected, display shows moisture-only mode with large moisture reading.
 
 Display updates every 2 seconds automatically.
 
@@ -194,11 +229,12 @@ The sensor uses the 4-20 mA current loop industrial standard:
 ## Troubleshooting
 
 ### "Failed to find INA219 chip"
-**Cause**: I2C wiring issue
+**Cause**: I2C wiring issue or INA219 not connected
 **Solution**:
 - V3: Check GPIO 1 (SDA) and GPIO 2 (SCL) - NOT GPIO 17/18!
 - Verify VCC → 3V3 and GND → GND
 - Ensure all grounds are common
+- **Note**: System will continue in moisture-only mode if INA219 is not found
 
 ### "Failed to find SSD1306 OLED"
 **Cause**: Wrong board version selected
@@ -235,6 +271,17 @@ The sensor uses the 4-20 mA current loop industrial standard:
 
 ### Display shows wrong units
 **Note**: Display always shows inches/feet (code converts from cm internally)
+
+### Moisture always 0%
+**Cause**: Wrong GPIO or wiring issue
+**Solution**: V3: Check AO connected to GPIO 4 (Pin 15). V2: Check AO connected to GPIO 36.
+
+### Moisture always 100%
+**Cause**: Probe may be shorted or submerged
+**Solution**: Check probe connections, ensure probe is not in water during testing
+
+### Moisture readings seem inverted
+**Note**: This is normal. The LM393 outputs HIGH when dry and LOW when wet. The code handles this inversion automatically.
 
 ## Advanced Configuration
 

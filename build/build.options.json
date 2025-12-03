@@ -1,5 +1,5 @@
 {
-  "additionalFiles": "../../..,../..,../..,../..,../..",
+  "additionalFiles": "../../..,../..,../..,../..,../..,../..",
   "compiler.optimization_flags": "-Os",
   "customBuildProperties": "",
   "fqbn": "esp32:esp32:heltec_wifi_lora_32_V3",

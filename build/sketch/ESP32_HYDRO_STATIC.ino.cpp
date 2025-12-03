@@ -8,6 +8,7 @@
  * Hardware:
  * - ALS-MPM-2F Hydrostatic Sensor (4-20 mA output)
  * - INA219 Current Sensor Module
+ * - LM393 Soil Moisture Sensor (for rain detection)
  * - Heltec WiFi LoRa 32 (built-in OLED display)
  * - 19.5V Dell Power Supply
  *
@@ -15,8 +16,13 @@
  * INA219 -> Heltec WiFi LoRa 32
  *   VCC  -> 3V3
  *   GND  -> GND
- *   SDA  -> GPIO 4  (V2) or GPIO 17 (V3) - shares I2C with built-in OLED
- *   SCL  -> GPIO 15 (V2) or GPIO 18 (V3) - shares I2C with built-in OLED
+ *   SDA  -> GPIO 4  (V2) or GPIO 1 (V3)
+ *   SCL  -> GPIO 15 (V2) or GPIO 2 (V3)
+ *
+ * LM393 Soil Moisture Sensor -> Heltec WiFi LoRa 32
+ *   VCC  -> 3V3
+ *   GND  -> GND
+ *   AO   -> GPIO 36 (V2) or GPIO 4 (V3) - Analog output
  *
  * Built-in OLED Display (SSD1306, 128x64):
  *   Heltec V2: SDA=4, SCL=15, RST=16
@@ -59,6 +65,13 @@
   #error "Please define either HELTEC_V2 or HELTEC_V3"
 #endif
 
+// Soil Moisture Sensor pin (LM393 analog output)
+#ifdef HELTEC_V2
+  #define MOISTURE_SENSOR_PIN 36  // V2: Use GPIO36 (ADC1_CH0, input only)
+#elif defined(HELTEC_V3)
+  #define MOISTURE_SENSOR_PIN 4   // V3: Use GPIO4 (ADC1)
+#endif
+
 // OLED display parameters
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -71,6 +84,9 @@
 
 Adafruit_INA219 ina219;  // Will be initialized with appropriate bus in setup()
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RST);
+
+// Flag to track if INA219 is available
+bool ina219Available = false;
 
 // Sensor calibration parameters
 // Adjust these based on your tank specifications
@@ -86,19 +102,30 @@ const float CM_TO_INCHES = 0.393701;   // Conversion factor from cm to inches
 const int SAMPLE_COUNT = 10;           // Number of samples to average
 const unsigned long SAMPLE_DELAY_MS = 100;  // Delay between samples
 
-#line 87 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
+// Soil moisture sensor settings
+// These values may need calibration for your specific sensor
+// Dry air = high ADC value (~4095), Wet/water = low ADC value (~0)
+const int MOISTURE_DRY_VALUE = 4095;   // ADC reading when sensor is dry
+const int MOISTURE_WET_VALUE = 1500;   // ADC reading when sensor is in water
+const int MOISTURE_SAMPLE_COUNT = 5;   // Number of samples to average
+
+#line 110 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
 void setup();
-#line 174 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
+#line 208 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
 void loop();
-#line 223 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
+#line 281 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
 float getAverageCurrent();
-#line 249 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
+#line 307 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
 float calculateDepth(float current_mA);
-#line 264 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
+#line 322 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
 float calculatePercentage(float current_mA);
-#line 278 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
-void updateOLEDDisplay(float current_mA, float depthInches, float percentage);
-#line 87 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
+#line 336 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
+int getAverageMoisture();
+#line 353 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
+float calculateMoisturePercent(int rawValue);
+#line 369 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
+void updateOLEDDisplay(float current_mA, float depthInches, float percentage, float moisturePercent, bool hasWaterLevel);
+#line 110 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
 void setup() {
   Serial.begin(115200);
   delay(1000);
@@ -130,24 +157,23 @@ void setup() {
   delay(20);
   digitalWrite(OLED_RST, HIGH);
 
-  // Initialize the INA219
+  // Initialize the INA219 (optional - continue if not found)
   #ifdef HELTEC_V3
     if (!ina219.begin(&I2C_INA219)) {  // V3: Use second I2C bus
   #else
     if (!ina219.begin()) {             // V2: Use default Wire bus
   #endif
-    Serial.println("Failed to find INA219 chip!");
+    Serial.println("Failed to find INA219 chip - water level disabled");
     #ifdef HELTEC_V3
       Serial.println("Check wiring to GPIO1 (SDA) and GPIO2 (SCL)");
     #else
       Serial.println("Check wiring to GPIO4 (SDA) and GPIO15 (SCL)");
     #endif
-    while (1) {
-      delay(1000);
-    }
+    ina219Available = false;
+  } else {
+    Serial.println("INA219 initialized successfully");
+    ina219Available = true;
   }
-
-  Serial.println("INA219 initialized successfully");
 
   // Initialize the OLED display
   if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
@@ -159,6 +185,18 @@ void setup() {
   }
 
   Serial.println("Built-in OLED display initialized successfully");
+
+  // Initialize soil moisture sensor pin
+  pinMode(MOISTURE_SENSOR_PIN, INPUT);
+  #ifdef HELTEC_V3
+    // ESP32-S3 uses 12-bit ADC by default
+    analogReadResolution(12);
+    Serial.print("Soil moisture sensor on GPIO");
+    Serial.println(MOISTURE_SENSOR_PIN);
+  #else
+    Serial.print("Soil moisture sensor on GPIO");
+    Serial.println(MOISTURE_SENSOR_PIN);
+  #endif
 
   // Display startup screen
   display.clearDisplay();
@@ -187,45 +225,69 @@ void setup() {
 }
 
 void loop() {
-  float avgCurrent = getAverageCurrent();
-  float depthCm = calculateDepth(avgCurrent);
-  float depthInches = depthCm * CM_TO_INCHES;
-  float depthPercent = calculatePercentage(avgCurrent);
+  float avgCurrent = 0.0;
+  float depthCm = 0.0;
+  float depthInches = 0.0;
+  float depthPercent = 0.0;
 
-  // Calculate feet and inches
-  int feet = (int)(depthInches / 12);
-  float remainingInches = depthInches - (feet * 12);
+  // Read INA219 if available
+  if (ina219Available) {
+    avgCurrent = getAverageCurrent();
+    depthCm = calculateDepth(avgCurrent);
+    depthInches = depthCm * CM_TO_INCHES;
+    depthPercent = calculatePercentage(avgCurrent);
+  }
+
+  // Read soil moisture sensor
+  int moistureRaw = getAverageMoisture();
+  float moisturePercent = calculateMoisturePercent(moistureRaw);
 
   // Display results
-  Serial.println("--- Water Level Reading ---");
-  Serial.print("Current: ");
-  Serial.print(avgCurrent, 2);
-  Serial.println(" mA");
+  Serial.println("--- Sensor Reading ---");
 
-  Serial.print("Depth: ");
-  if (depthInches >= 12.0) {
-    Serial.print(feet);
-    Serial.print(" ft ");
-    Serial.print(remainingInches, 1);
-    Serial.print(" in (");
+  if (ina219Available) {
+    // Calculate feet and inches
+    int feet = (int)(depthInches / 12);
+    float remainingInches = depthInches - (feet * 12);
+
+    Serial.print("Current: ");
+    Serial.print(avgCurrent, 2);
+    Serial.println(" mA");
+
+    Serial.print("Depth: ");
+    if (depthInches >= 12.0) {
+      Serial.print(feet);
+      Serial.print(" ft ");
+      Serial.print(remainingInches, 1);
+      Serial.print(" in (");
+    } else {
+      Serial.print(depthInches, 1);
+      Serial.print(" in (");
+    }
+    Serial.print(depthPercent, 1);
+    Serial.println("%)");
+
+    // Check for sensor faults
+    if (avgCurrent < MIN_CURRENT_MA - 0.5) {
+      Serial.println("WARNING: Current below 4mA - Check sensor connection!");
+    } else if (avgCurrent > MAX_CURRENT_MA + 0.5) {
+      Serial.println("WARNING: Current above 20mA - Check sensor!");
+    }
   } else {
-    Serial.print(depthInches, 1);
-    Serial.print(" in (");
+    Serial.println("Water level: N/A (INA219 not connected)");
   }
-  Serial.print(depthPercent, 1);
-  Serial.println("%)");
 
-  // Check for sensor faults
-  if (avgCurrent < MIN_CURRENT_MA - 0.5) {
-    Serial.println("WARNING: Current below 4mA - Check sensor connection!");
-  } else if (avgCurrent > MAX_CURRENT_MA + 0.5) {
-    Serial.println("WARNING: Current above 20mA - Check sensor!");
-  }
+  // Display moisture reading
+  Serial.print("Moisture: ");
+  Serial.print(moisturePercent, 1);
+  Serial.print("% (raw: ");
+  Serial.print(moistureRaw);
+  Serial.println(")");
 
   Serial.println();
 
   // Update OLED display
-  updateOLEDDisplay(avgCurrent, depthInches, depthPercent);
+  updateOLEDDisplay(avgCurrent, depthInches, depthPercent, moisturePercent, ina219Available);
 
   // Wait before next reading
   delay(2000);
@@ -287,50 +349,112 @@ float calculatePercentage(float current_mA) {
 }
 
 /**
- * Update OLED display with current water level readings
- * Displays current, depth (in feet/inches), and percentage in an easy-to-read format
+ * Read multiple soil moisture samples and return the average
+ * This reduces noise from the analog sensor
  */
-void updateOLEDDisplay(float current_mA, float depthInches, float percentage) {
-  display.clearDisplay();
+int getAverageMoisture() {
+  long total = 0;
 
-  // Title
-  display.setTextSize(1);
-  display.setTextColor(SSD1306_WHITE);
-  display.setCursor(0, 0);
-  display.println("Water Level Reading");
-  display.drawLine(0, 10, SCREEN_WIDTH, 10, SSD1306_WHITE);
-
-  // Current reading
-  display.setCursor(0, 16);
-  display.print("Current: ");
-  display.print(current_mA, 2);
-  display.println(" mA");
-
-  // Depth reading (larger text)
-  display.setCursor(0, 30);
-  display.print("Depth: ");
-  display.setTextSize(2);
-  display.setCursor(0, 40);
-
-  // Display in feet and inches if >= 12 inches, otherwise just inches
-  if (depthInches >= 12.0) {
-    int feet = (int)(depthInches / 12);
-    float remainingInches = depthInches - (feet * 12);
-    display.print(feet);
-    display.print("ft ");
-    display.print(remainingInches, 1);
-    display.print("in");
-  } else {
-    display.print(depthInches, 1);
-    display.print(" in");
+  for (int i = 0; i < MOISTURE_SAMPLE_COUNT; i++) {
+    total += analogRead(MOISTURE_SENSOR_PIN);
+    delay(10);
   }
 
-  // Percentage (bottom right)
+  return total / MOISTURE_SAMPLE_COUNT;
+}
+
+/**
+ * Convert raw ADC moisture reading to percentage
+ * Note: LM393 sensor reads HIGH when dry, LOW when wet
+ *   Dry (air)  -> ~4095 ADC -> 0% moisture
+ *   Wet (water) -> ~1500 ADC -> 100% moisture
+ */
+float calculateMoisturePercent(int rawValue) {
+  // Constrain to expected range
+  rawValue = constrain(rawValue, MOISTURE_WET_VALUE, MOISTURE_DRY_VALUE);
+
+  // Invert the mapping (high ADC = dry = 0%, low ADC = wet = 100%)
+  float percentage = ((float)(MOISTURE_DRY_VALUE - rawValue) /
+                      (float)(MOISTURE_DRY_VALUE - MOISTURE_WET_VALUE)) * 100.0;
+
+  return percentage;
+}
+
+/**
+ * Update OLED display with current water level and moisture readings
+ * Displays depth, tank percentage, and moisture percentage
+ * If INA219 is not available, shows moisture-only display
+ */
+void updateOLEDDisplay(float current_mA, float depthInches, float percentage, float moisturePercent, bool hasWaterLevel) {
+  display.clearDisplay();
   display.setTextSize(1);
-  display.setCursor(70, 56);
-  display.print("(");
-  display.print(percentage, 1);
-  display.print("%)");
+  display.setTextColor(SSD1306_WHITE);
+
+  if (hasWaterLevel) {
+    // Full display with water level and moisture
+    // Title
+    display.setCursor(0, 0);
+    display.print("Tank:");
+    display.print(percentage, 0);
+    display.print("%  Moist:");
+    display.print(moisturePercent, 0);
+    display.println("%");
+    display.drawLine(0, 10, SCREEN_WIDTH, 10, SSD1306_WHITE);
+
+    // Current reading
+    display.setCursor(0, 14);
+    display.print("Current: ");
+    display.print(current_mA, 2);
+    display.println(" mA");
+
+    // Depth reading (larger text)
+    display.setCursor(0, 26);
+    display.print("Depth:");
+    display.setTextSize(2);
+    display.setCursor(0, 36);
+
+    // Display in feet and inches if >= 12 inches, otherwise just inches
+    if (depthInches >= 12.0) {
+      int feet = (int)(depthInches / 12);
+      float remainingInches = depthInches - (feet * 12);
+      display.print(feet);
+      display.print("'");
+      display.print(remainingInches, 1);
+      display.print("\"");
+    } else {
+      display.print(depthInches, 1);
+      display.print("\"");
+    }
+
+    // Moisture indicator at bottom
+    display.setTextSize(1);
+    display.setCursor(0, 56);
+  } else {
+    // Moisture-only display (INA219 not available)
+    display.setCursor(0, 0);
+    display.println("Moisture Sensor");
+    display.drawLine(0, 10, SCREEN_WIDTH, 10, SSD1306_WHITE);
+
+    display.setCursor(0, 16);
+    display.println("Water Level: N/A");
+    display.println("(INA219 not found)");
+
+    // Large moisture display
+    display.setCursor(0, 38);
+    display.print("Moisture:");
+    display.setTextSize(2);
+    display.setCursor(0, 48);
+    display.print(moisturePercent, 1);
+    display.print("%");
+    display.setTextSize(1);
+  }
+
+  if (hasWaterLevel) {
+    // This continues the moisture line for the full display
+    display.print("Moisture: ");
+    display.print(moisturePercent, 1);
+    display.print("%");
+  }
 
   // Display everything
   display.display();
