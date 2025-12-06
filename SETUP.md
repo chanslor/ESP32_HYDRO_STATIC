@@ -202,7 +202,7 @@ The 0.96" built-in OLED shows:
 
 If INA219 is not connected, display shows moisture-only mode with large moisture reading.
 
-Display updates every 2 seconds automatically.
+Display updates every 10 seconds automatically.
 
 ## Calibration
 
@@ -303,7 +303,12 @@ const unsigned long SAMPLE_DELAY_MS = 100; // Increase for better averaging (100
 Edit the delay in loop() function:
 
 ```cpp
-delay(2000);  // 2000 ms = 2 seconds between readings
+delay(10000);  // 10000 ms = 10 seconds between readings
+```
+
+To change moisture sensor interval independently, edit:
+```cpp
+const unsigned long MOISTURE_READ_INTERVAL_MS = 10000;  // 10 seconds
 ```
 
 ### I2C Configuration (V3)

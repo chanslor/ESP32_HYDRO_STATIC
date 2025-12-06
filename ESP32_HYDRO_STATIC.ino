@@ -86,6 +86,11 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RST);
 // Flag to track if INA219 is available
 bool ina219Available = false;
 
+// Timing for moisture sensor (separate from main loop)
+unsigned long lastMoistureReadTime = 0;
+int lastMoistureRaw = 0;
+float lastMoisturePercent = 0.0;
+
 // Sensor calibration parameters
 // Adjust these based on your tank specifications
 const float MIN_CURRENT_MA = 4.0;      // Minimum current (mA) at 0 depth
@@ -106,6 +111,7 @@ const unsigned long SAMPLE_DELAY_MS = 100;  // Delay between samples
 const int MOISTURE_DRY_VALUE = 4095;   // ADC reading when sensor is dry
 const int MOISTURE_WET_VALUE = 1500;   // ADC reading when sensor is in water
 const int MOISTURE_SAMPLE_COUNT = 5;   // Number of samples to average
+const unsigned long MOISTURE_READ_INTERVAL_MS = 10000;  // Read moisture every 10 seconds
 
 void setup() {
   Serial.begin(115200);
@@ -219,9 +225,15 @@ void loop() {
     depthPercent = calculatePercentage(avgCurrent);
   }
 
-  // Read soil moisture sensor
-  int moistureRaw = getAverageMoisture();
-  float moisturePercent = calculateMoisturePercent(moistureRaw);
+  // Read soil moisture sensor (only every MOISTURE_READ_INTERVAL_MS)
+  unsigned long currentTime = millis();
+  if (currentTime - lastMoistureReadTime >= MOISTURE_READ_INTERVAL_MS || lastMoistureReadTime == 0) {
+    lastMoistureRaw = getAverageMoisture();
+    lastMoisturePercent = calculateMoisturePercent(lastMoistureRaw);
+    lastMoistureReadTime = currentTime;
+  }
+  int moistureRaw = lastMoistureRaw;
+  float moisturePercent = lastMoisturePercent;
 
   // Display results
   Serial.println("--- Sensor Reading ---");
@@ -271,7 +283,7 @@ void loop() {
   updateOLEDDisplay(avgCurrent, depthInches, depthPercent, moisturePercent, ina219Available);
 
   // Wait before next reading
-  delay(2000);
+  delay(10000);
 }
 
 /**

@@ -203,7 +203,7 @@ The hydrostatic sensor outputs:
 4. **I2C Communication**: ESP32 reads current value from INA219
 5. **Averaging**: 10 samples averaged over 1 second for stability
 6. **Conversion**: Linear interpolation converts mA to depth
-7. **Display**: Results shown on OLED display and via serial output every 2 seconds
+7. **Display**: Results shown on OLED display and via serial output every 10 seconds
 
 ### Calculation Formula
 
@@ -371,7 +371,7 @@ The Heltec's built-in 0.96" OLED provides clear, real-time visual feedback:
   - Under 12": Shows "8.5 in"
   - 12" or more: Shows "1 ft 7.8 in"
 - **Percentage**: Tank fill percentage in bottom-right corner
-- **Update Rate**: Refreshes every 2 seconds
+- **Update Rate**: Refreshes every 10 seconds
 - **High Contrast**: White text on black background for outdoor visibility
 - **Low Power**: Built-in OLED only draws ~20 mA
 - **No External Display Needed**: Everything integrated on the Heltec board
@@ -394,13 +394,15 @@ const unsigned long SAMPLE_DELAY_MS = 100;  // Delay between samples
 const int MOISTURE_DRY_VALUE = 4095;   // ADC reading when sensor is dry
 const int MOISTURE_WET_VALUE = 1500;   // ADC reading when sensor is in water
 const int MOISTURE_SAMPLE_COUNT = 5;   // Number of samples to average
+const unsigned long MOISTURE_READ_INTERVAL_MS = 10000;  // Read moisture every 10 seconds
 ```
 
 **Typical Adjustments:**
 - `MAX_DEPTH_CM`: Set to your actual tank depth
 - `SAMPLE_COUNT`: Increase for smoother readings (slower response)
 - `MOISTURE_WET_VALUE`: Calibrate by reading raw ADC when probe is in water
-- Loop `delay(2000)`: Change reading frequency
+- Loop `delay(10000)`: Change main loop reading frequency (currently 10 seconds)
+- `MOISTURE_READ_INTERVAL_MS`: Change moisture sensor reading interval
 
 **Moisture Sensor Calibration:**
 1. Run the system and observe the "raw" value in serial output
@@ -435,13 +437,13 @@ See [HELTEC_WIRING.md](HELTEC_WIRING.md) for detailed wiring and troubleshooting
 - **Measurement Range**: 4-20 mA (industry standard)
 - **Resolution**: ±0.8 mA (INA219 accuracy)
 - **Depth Resolution**: ~0.5% of tank depth
-- **Update Rate**: 2 seconds per reading
+- **Update Rate**: 10 seconds per reading
 - **Averaging**: 10 samples over 1 second
 
 **Display Specifications:**
 - **OLED Type**: SSD1306, 128x64 pixels, monochrome
 - **Display Size**: 0.96 inches diagonal
-- **Refresh Rate**: 2 seconds
+- **Refresh Rate**: 10 seconds
 - **Visibility**: High contrast, outdoor readable
 
 **System Specifications (Heltec V3):**
