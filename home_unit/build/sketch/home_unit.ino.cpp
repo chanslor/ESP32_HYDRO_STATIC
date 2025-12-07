@@ -303,7 +303,12 @@ void printSerialData(SensorPacket* pkt, int rssi, float snr) {
   Serial.println(" total)");
 
   if (pkt->relayId == UNIT_ID_RIDGE) {
-    Serial.println("Via: Ridge Relay");
+    Serial.println("Via: Ridge Relay (Primary/Heltec)");
+    Serial.print("River->Ridge RSSI: ");
+    Serial.print(pkt->rssi);
+    Serial.println(" dBm");
+  } else if (pkt->relayId == UNIT_ID_RIDGE2) {
+    Serial.println("Via: Ridge Relay (Secondary/T-Deck)");
     Serial.print("River->Ridge RSSI: ");
     Serial.print(pkt->rssi);
     Serial.println(" dBm");

@@ -44,7 +44,8 @@
 
 // Network IDs (to identify units)
 #define UNIT_ID_RIVER       0x01     // River sensor unit
-#define UNIT_ID_RIDGE       0x02     // Ridge relay unit
+#define UNIT_ID_RIDGE       0x02     // Ridge relay unit (primary - Heltec)
+#define UNIT_ID_RIDGE2      0x05     // Ridge relay unit (secondary - T-Deck, 300ms delay)
 #define UNIT_ID_HOME        0x03     // Home receiver unit
 
 // ===== Timing Settings =====
