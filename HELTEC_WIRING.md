@@ -161,16 +161,16 @@ All grounds common
 
 ### Compile and Upload
 
-**For V2 (default):**
+**For V2:**
 ```bash
-arduino-cli compile --fqbn esp32:esp32:heltec_wifi_lora_32_V2 .
-arduino-cli upload --fqbn esp32:esp32:heltec_wifi_lora_32_V2 --port /dev/ttyUSB0 .
+arduino-cli compile --build-path ./build --fqbn esp32:esp32:heltec_wifi_lora_32_V2 .
+arduino-cli upload -p /dev/ttyUSB0 --fqbn esp32:esp32:heltec_wifi_lora_32_V2 --input-dir ./build .
 ```
 
-**For V3:**
+**For V3 (current default):**
 ```bash
-arduino-cli compile --fqbn esp32:esp32:heltec_wifi_lora_32_V3 .
-arduino-cli upload --fqbn esp32:esp32:heltec_wifi_lora_32_V3 --port /dev/ttyUSB0 .
+arduino-cli compile --build-path ./build --fqbn esp32:esp32:heltec_wifi_lora_32_V3 .
+arduino-cli upload -p /dev/ttyUSB0 --fqbn esp32:esp32:heltec_wifi_lora_32_V3 --input-dir ./build .
 ```
 
 ### Monitor Output

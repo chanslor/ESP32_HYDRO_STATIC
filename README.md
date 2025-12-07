@@ -265,14 +265,14 @@ The display will automatically convert to inches/feet.
 
 **Using arduino-cli (for V3):**
 ```bash
-arduino-cli compile --fqbn esp32:esp32:heltec_wifi_lora_32_V3 .
-arduino-cli upload --fqbn esp32:esp32:heltec_wifi_lora_32_V3 --port /dev/ttyUSB0 .
+arduino-cli compile --build-path ./build --fqbn esp32:esp32:heltec_wifi_lora_32_V3 .
+arduino-cli upload -p /dev/ttyUSB0 --fqbn esp32:esp32:heltec_wifi_lora_32_V3 --input-dir ./build .
 ```
 
 **Using arduino-cli (for V2):**
 ```bash
-arduino-cli compile --fqbn esp32:esp32:heltec_wifi_lora_32_V2 .
-arduino-cli upload --fqbn esp32:esp32:heltec_wifi_lora_32_V2 --port /dev/ttyUSB0 .
+arduino-cli compile --build-path ./build --fqbn esp32:esp32:heltec_wifi_lora_32_V2 .
+arduino-cli upload -p /dev/ttyUSB0 --fqbn esp32:esp32:heltec_wifi_lora_32_V2 --input-dir ./build .
 ```
 
 ### 4. Monitor Output

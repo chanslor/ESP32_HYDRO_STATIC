@@ -138,10 +138,10 @@ const float MAX_DEPTH_CM = 100.0;  // Your tank depth in centimeters
 
 ```bash
 # Compile
-arduino-cli compile --fqbn esp32:esp32:heltec_wifi_lora_32_V3 .
+arduino-cli compile --build-path ./build --fqbn esp32:esp32:heltec_wifi_lora_32_V3 .
 
 # Upload (adjust port as needed)
-arduino-cli upload --fqbn esp32:esp32:heltec_wifi_lora_32_V3 --port /dev/ttyUSB0 .
+arduino-cli upload -p /dev/ttyUSB0 --fqbn esp32:esp32:heltec_wifi_lora_32_V3 --input-dir ./build .
 
 # Monitor serial output
 arduino-cli monitor -p /dev/ttyUSB0 -c baudrate=115200

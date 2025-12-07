@@ -48,6 +48,8 @@ arduino-cli monitor -p /dev/ttyUSB0 -c baudrate=115200
 # For V2 boards, replace heltec_wifi_lora_32_V3 with heltec_wifi_lora_32_V2
 ```
 
+**Note:** Always use `--build-path ./build` for compile and `--input-dir ./build` for upload to use a consistent build directory.
+
 ## Required Libraries
 
 ```bash
@@ -60,16 +62,19 @@ arduino-cli lib install "RadioLib"
 
 ```bash
 # River Unit (sensor + LoRa TX)
-cd river_unit && arduino-cli compile --fqbn esp32:esp32:heltec_wifi_lora_32_V3 .
-arduino-cli upload --fqbn esp32:esp32:heltec_wifi_lora_32_V3 --port /dev/ttyUSB0 .
+cd river_unit
+arduino-cli compile --build-path ./build --fqbn esp32:esp32:heltec_wifi_lora_32_V3 .
+arduino-cli upload -p /dev/ttyUSB0 --fqbn esp32:esp32:heltec_wifi_lora_32_V3 --input-dir ./build .
 
 # Ridge Relay (battery-powered repeater)
-cd ridge_relay && arduino-cli compile --fqbn esp32:esp32:heltec_wifi_lora_32_V3 .
-arduino-cli upload --fqbn esp32:esp32:heltec_wifi_lora_32_V3 --port /dev/ttyUSB0 .
+cd ridge_relay
+arduino-cli compile --build-path ./build --fqbn esp32:esp32:heltec_wifi_lora_32_V3 .
+arduino-cli upload -p /dev/ttyUSB0 --fqbn esp32:esp32:heltec_wifi_lora_32_V3 --input-dir ./build .
 
 # Home Unit (receiver + display)
-cd home_unit && arduino-cli compile --fqbn esp32:esp32:heltec_wifi_lora_32_V3 .
-arduino-cli upload --fqbn esp32:esp32:heltec_wifi_lora_32_V3 --port /dev/ttyUSB0 .
+cd home_unit
+arduino-cli compile --build-path ./build --fqbn esp32:esp32:heltec_wifi_lora_32_V3 .
+arduino-cli upload -p /dev/ttyUSB0 --fqbn esp32:esp32:heltec_wifi_lora_32_V3 --input-dir ./build .
 ```
 
 ## Architecture
