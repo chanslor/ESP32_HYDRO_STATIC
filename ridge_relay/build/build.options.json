@@ -1,0 +1,9 @@
+{
+  "additionalFiles": "../..",
+  "compiler.optimization_flags": "-Os",
+  "customBuildProperties": "",
+  "fqbn": "esp32:esp32:heltec_wifi_lora_32_V3",
+  "hardwareFolders": "/home/mdchansl/.arduino15/packages",
+  "otherLibrariesFolders": "/home/mdchansl/Arduino/libraries",
+  "sketchLocation": "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ridge_relay"
+}
