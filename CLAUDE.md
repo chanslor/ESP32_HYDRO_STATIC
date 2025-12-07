@@ -19,6 +19,19 @@ ESP32-based hydrostatic water level sensor system using a Heltec WiFi LoRa 32 bo
 - LM393 soil moisture sensor for rain detection and soil monitoring
 - Converts to water depth measurements displayed in inches/feet
 - INA219 is optional - system continues in moisture-only mode if not connected
+- **LoRa wireless network** for remote monitoring (river → ridge relay → home)
+
+## Project Structure
+
+```
+ESP32_HYDRO_STATIC/
+├── ESP32_HYDRO_STATIC.ino    # Original standalone sketch (no LoRa)
+├── lora_config.h             # Shared LoRa settings for all units
+├── river_unit/               # LoRa-enabled sensor + transmitter
+├── ridge_relay/              # Battery-powered LoRa repeater
+├── home_unit/                # LoRa receiver + display
+└── *.md                      # Documentation files
+```
 
 ## Build Commands
 
@@ -40,6 +53,23 @@ arduino-cli monitor -p /dev/ttyUSB0 -c baudrate=115200
 ```bash
 arduino-cli lib install "Adafruit INA219"
 arduino-cli lib install "Adafruit SSD1306"
+arduino-cli lib install "RadioLib"
+```
+
+## LoRa Network Build Commands
+
+```bash
+# River Unit (sensor + LoRa TX)
+cd river_unit && arduino-cli compile --fqbn esp32:esp32:heltec_wifi_lora_32_V3 .
+arduino-cli upload --fqbn esp32:esp32:heltec_wifi_lora_32_V3 --port /dev/ttyUSB0 .
+
+# Ridge Relay (battery-powered repeater)
+cd ridge_relay && arduino-cli compile --fqbn esp32:esp32:heltec_wifi_lora_32_V3 .
+arduino-cli upload --fqbn esp32:esp32:heltec_wifi_lora_32_V3 --port /dev/ttyUSB0 .
+
+# Home Unit (receiver + display)
+cd home_unit && arduino-cli compile --fqbn esp32:esp32:heltec_wifi_lora_32_V3 .
+arduino-cli upload --fqbn esp32:esp32:heltec_wifi_lora_32_V3 --port /dev/ttyUSB0 .
 ```
 
 ## Architecture
@@ -83,3 +113,18 @@ Single-file Arduino sketch (`ESP32_HYDRO_STATIC.ino`) with conditional compilati
 - INA219: 0x40 (I2C)
 - OLED: 0x3C (I2C)
 - Moisture sensor: GPIO 4 (V3) or GPIO 36 (V2) - analog input
+- Vext power control: GPIO 36 (must be LOW to enable OLED on some boards)
+
+### LoRa Configuration (lora_config.h)
+
+- Frequency: 915.0 MHz (US ISM band)
+- Spreading Factor: 9
+- Bandwidth: 125 kHz
+- TX Power: 14 dBm
+- Sync Word: 0x12 (private network)
+
+### Ridge Relay Test Mode
+
+The ridge relay has `#define TEST_MODE true/false` at the top:
+- `true`: Display stays on, no deep sleep (for testing)
+- `false`: Deep sleep enabled (for battery deployment)

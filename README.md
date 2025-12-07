@@ -501,14 +501,32 @@ ESP32_HYDRO_STATIC.ino
         └── Show moisture in large text
 ```
 
+## LoRa Wireless Network (NEW!)
+
+This project now includes a **three-unit LoRa network** for remote river monitoring:
+
+```
+[River Unit] --LoRa--> [Ridge Relay] --LoRa--> [Home Unit]
+ (Sensors)              (Repeater)              (Display)
+```
+
+- **River Unit** (`river_unit/`) - Sensors + LoRa transmitter
+- **Ridge Relay** (`ridge_relay/`) - Battery-powered repeater with deep sleep
+- **Home Unit** (`home_unit/`) - LoRa receiver with OLED display + serial logging
+
+See **[LORA_SETUP.md](LORA_SETUP.md)** for complete setup instructions.
+
+**Key Features:**
+- 915 MHz LoRa (US ISM band)
+- Up to 10km range with proper antennas
+- Battery-powered relay with configurable deep sleep
+- Displays signal strength (RSSI) for both links
+- Automatic packet relay and error detection
+
 ## Future Enhancements
 
 Possible additions to this project:
-- **LoRa wireless transmission** - Built-in SX1262 LoRa radio for:
-  - Long-range data transmission (up to 10km line-of-sight)
-  - Remote tank monitoring without WiFi infrastructure
-  - LoRaWAN integration for IoT networks
-  - Battery-powered remote installations
+- **LoRaWAN integration** - Connect to The Things Network
 - **WiFi connectivity** for local network monitoring
 - **MQTT publishing** to IoT platforms (Home Assistant, Node-RED, etc.)
 - **Web server** for browser-based access and configuration
@@ -535,6 +553,7 @@ This project is open source and provided as-is for educational and practical use
 - **Adafruit INA219 Library** - High-precision current sensing
 - **Adafruit SSD1306 Library** - OLED display driver
 - **Adafruit GFX Library** - Graphics primitives for display
+- **RadioLib** - LoRa radio communication
 - Designed for **ALS-MPM-2F** hydrostatic sensor
 - Compatible with standard **4-20 mA industrial sensors**
 

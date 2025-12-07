@@ -242,20 +242,36 @@ If INA219 is not connected, display shows moisture-only mode with large moisture
 | Upload fails | Press and hold PRG button during upload |
 | Board not detected | Install CP2102 USB-to-serial driver if needed |
 | "Wrong chip" error on V3 | Use heltec_wifi_lora_32_V3 FQBN (ESP32-S3, not ESP32) |
+| OLED blank but serial works | Enable Vext power: GPIO 36 = LOW (see below) |
 
-## Next Steps: LoRa Integration
+## LoRa Wireless Network (Implemented!)
 
-The Heltec board has a built-in LoRa module ready for future use:
-- **V2**: SX1276/SX1278 LoRa chip
-- **V3**: SX1262 LoRa chip (newer, more efficient)
+The Heltec board's built-in LoRa module is now used for a three-unit wireless network:
 
-Capabilities:
-- Long-range wireless data transmission (up to 10km line-of-sight)
-- Remote tank monitoring without WiFi infrastructure
-- LoRaWAN integration for IoT networks
-- Battery-powered remote installations
+- **V3**: SX1262 LoRa chip @ 915 MHz (US ISM band)
 
-This will be added in future updates!
+**Network Architecture:**
+```
+[River Unit] --LoRa--> [Ridge Relay] --LoRa--> [Home Unit]
+```
+
+- **River Unit** (`river_unit/`) - Sensors + LoRa transmitter
+- **Ridge Relay** (`ridge_relay/`) - Battery-powered repeater with deep sleep
+- **Home Unit** (`home_unit/`) - LoRa receiver + OLED display
+
+See **[LORA_SETUP.md](LORA_SETUP.md)** for complete setup instructions.
+
+## Vext Power for OLED
+
+**Important:** Some Heltec V3 boards require enabling Vext power (GPIO 36) for the OLED to work:
+
+```cpp
+pinMode(36, OUTPUT);
+digitalWrite(36, LOW);  // LOW = ON
+delay(100);
+```
+
+This is already included in the LoRa sketches. If your OLED is blank but serial works, this is likely the issue.
 
 ## Board Resources
 

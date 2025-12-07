@@ -338,8 +338,29 @@ To test the system without filling the tank:
 - **Sensor rating**: Verify max pressure rating matches tank depth
 - **Weatherproofing**: Use appropriate enclosures for outdoor installations
 
+## LoRa Wireless Network
+
+This project now supports a three-unit LoRa network for remote monitoring:
+
+- **River Unit** - Sensors + LoRa transmitter
+- **Ridge Relay** - Battery-powered repeater
+- **Home Unit** - LoRa receiver + display
+
+See **[LORA_SETUP.md](LORA_SETUP.md)** for complete LoRa network setup instructions.
+
+## Vext Power for OLED
+
+Some Heltec V3 boards require enabling Vext (GPIO 36 = LOW) for the OLED to work. This is handled automatically in the LoRa sketches. If your OLED is blank but serial output works, add this before OLED init:
+
+```cpp
+pinMode(36, OUTPUT);
+digitalWrite(36, LOW);
+delay(100);
+```
+
 ## Need Help?
 
 - See [README.md](README.md) for complete project documentation
 - See [HELTEC_WIRING.md](HELTEC_WIRING.md) for detailed wiring diagrams
+- See [LORA_SETUP.md](LORA_SETUP.md) for LoRa network setup
 - Check GitHub issues for common problems and solutions
