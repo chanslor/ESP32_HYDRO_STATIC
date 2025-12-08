@@ -2,6 +2,8 @@
 
 Secondary/backup LoRa repeater for the river monitoring network using the LILYGO T-Deck.
 
+<img src="tdeck-image.jpg" alt="T-Deck Relay Unit" width="80%">
+
 ## Overview
 
 This unit works alongside the primary Heltec ridge relay to provide redundant signal relay from the river sensor to the home unit. It uses a **staggered 300ms delay** before retransmitting to avoid RF collisions with the primary relay (which uses 50ms).
@@ -35,11 +37,17 @@ This unit works alongside the primary Heltec ridge relay to provide redundant si
 | **Power** | | |
 | Power ON | 10 | Must be HIGH for peripherals |
 | Battery ADC | 4 | Voltage divider (2:1) |
+| **Trackball** | | |
+| Up | 3 | Screen wake interrupt |
+| Down | 15 | Screen wake interrupt |
+| Left | 1 | Screen wake interrupt |
+| Right | 2 | Screen wake interrupt |
+| Click | 0 | Screen wake interrupt |
 | **Other** | | |
 | I2C SDA | 18 | Keyboard, touch |
 | I2C SCL | 8 | Keyboard, touch |
 | SD Card CS | 39 | MicroSD slot |
-| KB Interrupt | 46 | Keyboard |
+| KB Interrupt | 46 | Keyboard, screen wake |
 
 ## Network Operation
 
@@ -128,6 +136,21 @@ At the top of `tdeck_relay.ino`:
 #define TEST_MODE false  // Deep sleep enabled for battery deployment
 ```
 
+### Screen Sleep
+
+The display automatically sleeps after 30 seconds of inactivity to save power. Wake the screen by:
+- Moving the trackball in any direction
+- Clicking the trackball
+- Pressing any key on the keyboard
+
+The LoRa relay continues operating while the screen is asleep.
+
+To adjust the sleep timeout, modify in `tdeck_relay.ino`:
+
+```cpp
+#define SCREEN_SLEEP_MS  30000  // 30 seconds (change as needed)
+```
+
 ### LoRa Settings
 
 Configured in `../lora_config.h` (must match all units):
@@ -153,6 +176,8 @@ Black background with green text showing:
 - **Status**: RELAYING or waiting message
 - **Battery**: Voltage reading
 
+Display uses black background with green text. Screen sleeps after 30 seconds of inactivity and wakes on trackball/keyboard input.
+
 ## Libraries Used
 
 - **RadioLib** (v7.4.0+): SX1262 LoRa driver
@@ -167,6 +192,7 @@ Black background with green text showing:
 | Unit ID | 0x02 | 0x05 |
 | Display | SSD1306 OLED 128x64 | ST7789 LCD 320x240 |
 | Display Library | Adafruit SSD1306 | Arduino_GFX |
+| Screen Sleep | No | Yes (30s, wake via trackball/keyboard) |
 | USB Port | /dev/ttyUSB0 | /dev/ttyACM0 |
 | Board FQBN | heltec_wifi_lora_32_V3 | esp32s3:CDCOnBoot=cdc |
 
@@ -197,7 +223,10 @@ Black background with green text showing:
 | Mode | Current | Notes |
 |------|---------|-------|
 | Active (display on) | ~80 mA | Listening for packets |
+| Active (screen sleep) | ~50 mA | Backlight off, still listening |
 | Deep Sleep | ~25-150 uA | Display off, radio sleeping |
 | Average (8s sleep/3s active) | ~8 mA | Estimated |
 
 With a 2000mAh battery in deep sleep mode: ~10-14 days estimated runtime.
+
+In TEST_MODE with screen sleep enabled, power consumption is reduced when display is idle.

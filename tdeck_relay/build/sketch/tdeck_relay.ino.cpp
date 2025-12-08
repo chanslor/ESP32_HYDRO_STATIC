@@ -79,6 +79,16 @@
 // Keyboard interrupt
 #define TDECK_KB_INT     46
 
+// Trackball pins
+#define TDECK_TRACKBALL_UP    3
+#define TDECK_TRACKBALL_DOWN  15
+#define TDECK_TRACKBALL_LEFT  1
+#define TDECK_TRACKBALL_RIGHT 2
+#define TDECK_TRACKBALL_CLICK 0
+
+// ===== SCREEN SLEEP SETTINGS =====
+#define SCREEN_SLEEP_MS  30000  // 30 seconds until screen sleeps
+
 // ===== RELAY TIMING =====
 // Secondary relay waits longer to avoid collision with primary
 #define RELAY_DELAY_MS   300  // Primary uses 50ms, we use 300ms
@@ -126,14 +136,24 @@ SX1262 radio = new Module(TDECK_LORA_NSS, TDECK_LORA_DIO1, TDECK_LORA_RST, TDECK
 bool loraInitialized = false;
 volatile bool rxFlag = false;
 
+// Screen sleep state
+bool screenOn = true;
+unsigned long lastActivityTime = 0;
+volatile bool inputDetected = false;
+
 // Interrupt handler for LoRa receive
-#line 139 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/tdeck_relay/tdeck_relay.ino"
+#line 162 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/tdeck_relay/tdeck_relay.ino"
 void setup();
-#line 304 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/tdeck_relay/tdeck_relay.ino"
+#line 331 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/tdeck_relay/tdeck_relay.ino"
 void loop();
-#line 128 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/tdeck_relay/tdeck_relay.ino"
+#line 143 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/tdeck_relay/tdeck_relay.ino"
 void IRAM_ATTR setRxFlag(void) {
   rxFlag = true;
+}
+
+// Interrupt handler for trackball/keyboard input
+void IRAM_ATTR onInputDetected(void) {
+  inputDetected = true;
 }
 
 // Function declarations
@@ -142,6 +162,9 @@ void initDisplay();
 void goToDeepSleep();
 void updateDisplay(bool hasData, int rssi, float current, float moisture, uint32_t relayed);
 float readBatteryVoltage();
+void setupInputInterrupts();
+void screenSleep();
+void screenWake();
 
 void setup() {
   bootCount++;
@@ -197,6 +220,10 @@ void setup() {
     delay(5000);
     goToDeepSleep();
   }
+
+  // Setup input interrupts for screen wake
+  setupInputInterrupts();
+  lastActivityTime = millis();
 
   // Show initial status
   updateDisplay(false, lastRSSI, lastCurrent, lastMoisture, packetsRelayed);
@@ -316,8 +343,24 @@ void loop() {
       Serial.print(millis() / 1000);
       Serial.print("s, Battery: ");
       Serial.print(readBatteryVoltage(), 2);
-      Serial.println("V");
+      Serial.print("V, Screen: ");
+      Serial.println(screenOn ? "ON" : "OFF");
       lastDebug = millis();
+    }
+
+    // Check for trackball/keyboard input to wake screen
+    if (inputDetected) {
+      inputDetected = false;
+      lastActivityTime = millis();
+      if (!screenOn) {
+        screenWake();
+        updateDisplay(lastCurrent > 0, lastRSSI, lastCurrent, lastMoisture, packetsRelayed);
+      }
+    }
+
+    // Check for screen sleep timeout
+    if (screenOn && (millis() - lastActivityTime > SCREEN_SLEEP_MS)) {
+      screenSleep();
     }
 
     if (rxFlag) {
@@ -376,7 +419,10 @@ void loop() {
             Serial.println(state);
           }
 
-          updateDisplay(true, rxRSSI, pkt.current_mA, pkt.moisturePercent, packetsRelayed);
+          // Only update display if screen is on
+          if (screenOn) {
+            updateDisplay(true, rxRSSI, pkt.current_mA, pkt.moisturePercent, packetsRelayed);
+          }
         }
       }
 
@@ -541,5 +587,42 @@ void updateDisplay(bool hasData, int rssi, float current, float moisture, uint32
   gfx->setCursor(250, 220);
   sprintf(buf, "Bat: %.2fV", readBatteryVoltage());
   gfx->print(buf);
+}
+
+void setupInputInterrupts() {
+  // Setup trackball pins with pull-up and interrupts
+  pinMode(TDECK_TRACKBALL_UP, INPUT_PULLUP);
+  pinMode(TDECK_TRACKBALL_DOWN, INPUT_PULLUP);
+  pinMode(TDECK_TRACKBALL_LEFT, INPUT_PULLUP);
+  pinMode(TDECK_TRACKBALL_RIGHT, INPUT_PULLUP);
+  pinMode(TDECK_TRACKBALL_CLICK, INPUT_PULLUP);
+  pinMode(TDECK_KB_INT, INPUT_PULLUP);
+
+  // Attach interrupts for all trackball directions and keyboard
+  attachInterrupt(digitalPinToInterrupt(TDECK_TRACKBALL_UP), onInputDetected, FALLING);
+  attachInterrupt(digitalPinToInterrupt(TDECK_TRACKBALL_DOWN), onInputDetected, FALLING);
+  attachInterrupt(digitalPinToInterrupt(TDECK_TRACKBALL_LEFT), onInputDetected, FALLING);
+  attachInterrupt(digitalPinToInterrupt(TDECK_TRACKBALL_RIGHT), onInputDetected, FALLING);
+  attachInterrupt(digitalPinToInterrupt(TDECK_TRACKBALL_CLICK), onInputDetected, FALLING);
+  attachInterrupt(digitalPinToInterrupt(TDECK_KB_INT), onInputDetected, FALLING);
+
+  Serial.println("Input interrupts configured for screen wake");
+}
+
+void screenSleep() {
+  if (!screenOn) return;
+
+  Serial.println("Screen going to sleep...");
+  digitalWrite(TDECK_TFT_BL, LOW);  // Turn off backlight
+  screenOn = false;
+}
+
+void screenWake() {
+  if (screenOn) return;
+
+  Serial.println("Screen waking up...");
+  digitalWrite(TDECK_TFT_BL, HIGH);  // Turn on backlight
+  screenOn = true;
+  lastActivityTime = millis();
 }
 
