@@ -619,3 +619,4 @@ This project is open source and provided as-is for educational and practical use
 - **RadioLib** - LoRa radio communication
 - Designed for **TL-136** hydrostatic level sensor
 - Compatible with standard **4-20 mA industrial sensors**
+- **Anthropic Claude** (Claude Code) - Development and documentation assistance
