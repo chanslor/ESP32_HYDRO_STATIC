@@ -22,6 +22,10 @@ The current project is organized around a LoRa monitoring network:
 
 See [LORA_SETUP.md](LORA_SETUP.md) for the complete three-unit network setup.
 
+**LoRa range note:** With good antennas and clear line of sight, 915 MHz LoRa links can reach several miles or more. In wooded, hilly, or low-antenna river deployments, usable range is usually much shorter, so the ridge relay provides a higher midpoint that helps packets clear terrain and vegetation.
+
+![LoRa 915 MHz range in real-world scenarios](Lora-Ranges.png)
+
 ## River Unit Photos
 
 | Bench assembly | Sensor wiring |
