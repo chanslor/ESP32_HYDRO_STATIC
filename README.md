@@ -8,6 +8,8 @@ The sensor firmware converts loop current into water depth, displays depth in **
 
 The current project is organized around a LoRa monitoring network:
 
+![LoRa river monitoring network setup](Entire-Setup-River-LORA.png)
+
 ```
 [River Unit] --LoRa--> [Ridge Relay] --LoRa--> [Home Unit]
  (Sensors)              (Repeater)              (Display)
