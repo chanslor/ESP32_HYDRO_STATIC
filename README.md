@@ -576,6 +576,22 @@ See [LORA_SETUP.md](LORA_SETUP.md) for setup and upload steps, and [LORA_TECHNIC
 
 ![Home concept field test](Home-concpet-Locust.png)
 
+## Cost Breakdown
+
+Keeping each monitoring endpoint low-cost and expendable is a core goal of this project. The bill of materials below reflects readily available, off-the-shelf parts:
+
+| Component | Description | Price |
+| --- | --- | ---: |
+| Hydrostatic level sensor | TL-136 12–32 VDC, 4–20 mA liquid level transmitter (0–1 m) | $44.54 |
+| ESP32 LoRa 32 V3 board | 915 MHz Heltec board with OLED, case cover, and 915 MHz antenna | $25.00 |
+| SLA battery | SEFEPODER 12V 7Ah rechargeable sealed lead acid battery | $15.00 |
+| INA219 current sensor | HiLetgo I2C bi-directional DC current sensor breakout | $8.19 |
+| Enclosure | Snapware Total Solution food storage container, 8.5 cups | $7.00 |
+| LM393 moisture sensor | HiLetgo 3.3V–5V soil moisture sensor | $2.00 |
+| **Total** | **Per-endpoint hardware cost** | **$101.73** |
+
+**Note:** The hydrostatic level sensor and INA219 are optional — the system runs in moisture-only mode without them, dropping the per-endpoint cost to **$49.00**. Prices are approximate and subject to change.
+
 ## Future Enhancements
 
 Possible additions to this project:
@@ -607,5 +623,5 @@ This project is open source and provided as-is for educational and practical use
 - **Adafruit SSD1306 Library** - OLED display driver
 - **Adafruit GFX Library** - Graphics primitives for display
 - **RadioLib** - LoRa radio communication
-- Designed for **ALS-MPM-2F** hydrostatic sensor
+- Designed for **TL-136** hydrostatic level sensor
 - Compatible with standard **4-20 mA industrial sensors**
