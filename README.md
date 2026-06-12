@@ -592,19 +592,13 @@ Keeping each monitoring endpoint low-cost and expendable is a core goal of this 
 
 **Note:** The hydrostatic level sensor and INA219 are optional — the system runs in moisture-only mode without them, dropping the per-endpoint cost to **$49.00**. Prices are approximate and subject to change.
 
-## Future Enhancements
+## Next Steps
 
-Possible additions to this project:
-- **LoRaWAN integration** - Connect to The Things Network
-- **WiFi connectivity** for local network monitoring
-- **MQTT publishing** to IoT platforms (Home Assistant, Node-RED, etc.)
-- **Web server** for browser-based access and configuration
-- **SD card data logging** for historical tracking
-- **Alarm triggers** for low/high water level warnings
-- **Email/SMS notifications** via WiFi
-- **Multiple sensor support** for monitoring multiple tanks
-- **Battery backup** with sleep modes for power-outage resilience
-- **Graphing** water level trends on OLED or web interface
+Planned work for the next phase of the project:
+- Apply solar panel
+- Field Test #2 location
+- SD card data logging for historical tracking
+- Battery sleep modes when moisture / temperature alerts
 
 ## Safety Notes
 
