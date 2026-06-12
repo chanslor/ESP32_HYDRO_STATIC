@@ -1,39 +1,69 @@
-# ESP32 Hydrostatic Water Level Sensor with OLED Display
+# ESP32 Hydrostatic River Monitoring System
 
-A complete water depth measurement system using an industrial 4-20 mA hydrostatic pressure sensor, INA219 current sensor module, LM393 soil moisture sensor, and Heltec WiFi LoRa 32 V3 board with built-in OLED display. This system accurately measures water depth in tanks and soil/rain moisture levels, displaying real-time readings in **inches/feet** on the OLED screen and via serial output.
+This project monitors river or tank water level with an industrial 4-20 mA hydrostatic pressure sensor, an INA219 current sensor, an LM393 moisture sensor, and Heltec WiFi LoRa 32 V3 boards. It can run as a standalone sensor with a local OLED display, or as a three-unit LoRa network that sends river readings through a ridge relay to a home receiver.
 
-## Overview
+The sensor firmware converts loop current into water depth, displays depth in **inches** or **feet + inches**, reports percentage full, and continues operating in moisture-only mode if the INA219 or hydrostatic sensor is not installed.
 
-This project reads industrial 4-20 mA current loop signals from a hydrostatic pressure sensor and converts them to water depth measurements. Additionally, an LM393 soil moisture sensor provides moisture readings useful for rain detection and soil monitoring. The system uses an INA219 current sensor to measure the loop current, which is then processed by a Heltec WiFi LoRa 32 V3 board to calculate and display water depth in **inches** (or **feet + inches** for depths over 12") and percentage full. The built-in 0.96" OLED display provides real-time visual feedback, making the system ideal for standalone field deployment.
+## System Overview
 
-**Note**: The INA219 water level sensor is optional - if not connected, the system will continue to operate with moisture readings only.
+The current project is organized around a LoRa monitoring network:
 
-### Key Features
+```
+[River Unit] --LoRa--> [Ridge Relay] --LoRa--> [Home Unit]
+ (Sensors)              (Repeater)              (Display)
+```
 
-- **Built-in OLED Display** - Heltec's 0.96" display shows real-time readings
-- **Inches/Feet Display** - Shows depth as "8.5 in" or "1 ft 3.2 in" automatically
-- **Soil Moisture Sensor** - LM393-based sensor for rain detection and soil moisture monitoring
+- **River Unit** (`river_unit/`) - Reads hydrostatic and moisture sensors, then transmits readings by LoRa.
+- **Ridge Relay** (`ridge_relay/`) - Battery-powered repeater that forwards packets from the river unit.
+- **Home Unit** (`home_unit/`) - Receives packets, displays readings on OLED, and logs data over serial.
+- **Standalone Sketch** (`ESP32_HYDRO_STATIC.ino`) - Original single-board sensor/display firmware without the LoRa relay path.
+
+See [LORA_SETUP.md](LORA_SETUP.md) for the complete three-unit network setup.
+
+## River Unit Photos
+
+| Bench assembly | Sensor wiring |
+| --- | --- |
+| <img src="river_unit/hydro-static-01.JPG" alt="River unit bench assembly" width="360"> | <img src="river_unit/hydro-static-02.JPG" alt="River unit sensor wiring" width="360"> |
+
+| Outdoor enclosure | Field test |
+| --- | --- |
+| <img src="river_unit/hydro-static-OUT_DOORS-01.JPG" alt="River unit outdoor enclosure" width="360"> | <img src="river_unit/Field-test.JPG" alt="River unit field test" width="360"> |
+
+## Key Features
+
+- **Three-unit LoRa network** - River sensor, ridge relay, and home receiver for remote monitoring
+- **Built-in OLED display** - Heltec's 0.96" display shows real-time readings
+- **Inches/feet display** - Shows depth as "8.5 in" or "1 ft 3.2 in" automatically
+- **Soil moisture sensor** - LM393-based sensor for rain detection and soil moisture monitoring
 - **4-20 mA current loop interface** for industrial sensor compatibility
 - **High-precision INA219** current measurement (±0.8 mA resolution)
-- **Optional INA219** - System continues with moisture-only mode if INA219 not connected
+- **Optional INA219** - System continues with moisture-only mode if INA219 is not connected
 - **Noise-resistant averaging** of 10 samples per reading
-- **Dual output format**: Depth in inches/feet and percentage full
+- **Dual output format** - Depth in inches/feet and percentage full
 - **Automatic fault detection** for sensor/wiring issues
 - **Serial output** at 115200 baud for monitoring and data logging
-- **Easy calibration** via single constant (tank depth in cm)
-- **LoRa ready** - Board includes LoRa radio for future wireless features
-- **Low memory footprint**: 343KB program (10% of 4MB flash), 22KB RAM
+- **Easy calibration** via a single tank-depth constant
 
 ## Hardware Requirements
 
 ### Components
 
-- **ALS-MPM-2F Hydrostatic Sensor** (4-20 mA output) - *optional*
+For a standalone sensor or the river unit:
+
 - **Heltec WiFi LoRa 32 V3** (ESP32-S3 board with built-in OLED and LoRa)
+- **ALS-MPM-2F Hydrostatic Sensor** (4-20 mA output) - *optional*
 - **INA219 Current Sensor Module** (I2C interface) - *optional, for water level*
 - **LM393 Soil Moisture Sensor** (analog output, for rain/moisture detection)
 - **19.5V Dell Power Supply** (barrel connector power brick) - *only needed for hydrostatic sensor*
 - Connecting wires
+
+For the full LoRa network:
+
+- **3x Heltec WiFi LoRa 32 V3 boards** - river unit, ridge relay, and home unit
+- **Battery pack or solar power** for the ridge relay, depending on deployment
+- **USB power or computer connection** for the home unit
+- Weatherproof enclosures for outdoor units
 
 ### Why These Components?
 
@@ -214,29 +244,41 @@ Percentage = ((Current - 4) / (20 - 4)) × 100
 
 ## Quick Start
 
+This section gets the standalone sensor/display sketch running. For the full river/ridge/home LoRa network, use the same library setup, then follow [LORA_SETUP.md](LORA_SETUP.md) for the per-unit compile and upload commands.
+
 ### 1. Install Arduino Libraries
 
 **Required Libraries:**
 - Adafruit INA219 (for current sensor)
 - Adafruit SSD1306 (for OLED display)
 - Adafruit GFX Library (dependency, auto-installed)
+- RadioLib (for the LoRa river, relay, and home sketches)
 
 Using Arduino IDE:
 ```
 Sketch → Include Library → Manage Libraries
 Search: "Adafruit INA219" → Install
 Search: "Adafruit SSD1306" → Install
+Search: "RadioLib" → Install
 ```
 
 Or using arduino-cli:
 ```bash
 arduino-cli lib install "Adafruit INA219"
 arduino-cli lib install "Adafruit SSD1306"
+arduino-cli lib install "RadioLib"
 ```
 
-### 2. Select Board Version
+### 2. Choose the Sketch
 
-Edit `ESP32_HYDRO_STATIC.ino` lines 40-41 to match your Heltec board:
+- Use `ESP32_HYDRO_STATIC.ino` for one local unit with sensors and OLED display.
+- Use `river_unit/river_unit.ino` for the deployed river sensor transmitter.
+- Use `ridge_relay/ridge_relay.ino` for the relay node.
+- Use `home_unit/home_unit.ino` for the home receiver and display.
+
+### 3. Select Board Version
+
+For the standalone sketch, edit `ESP32_HYDRO_STATIC.ino` lines 40-41 to match your Heltec board:
 ```cpp
 // For V2 boards (older):
 #define HELTEC_V2
@@ -247,15 +289,19 @@ Edit `ESP32_HYDRO_STATIC.ino` lines 40-41 to match your Heltec board:
 #define HELTEC_V3
 ```
 
-### 3. Configure Tank Depth
+The LoRa unit sketches are written for Heltec WiFi LoRa 32 V3 boards.
 
-Edit `ESP32_HYDRO_STATIC.ino` - set your tank depth in centimeters:
+### 4. Configure Tank Depth
+
+Edit the sketch you are flashing, such as `ESP32_HYDRO_STATIC.ino` or `river_unit/river_unit.ino`, and set your tank depth in centimeters:
 ```cpp
 const float MAX_DEPTH_CM = 100.0;  // Change to your tank depth in cm
 ```
 The display will automatically convert to inches/feet.
 
-### 4. Upload Code
+### 5. Upload Code
+
+The examples below show the standalone sketch from the repository root. For the three LoRa units, run the same type of compile/upload commands inside `river_unit/`, `ridge_relay/`, or `home_unit/` as shown in [LORA_SETUP.md](LORA_SETUP.md).
 
 **Using Arduino IDE:**
 - Board: **Heltec WiFi LoRa 32(V3)** (or V2 if using older board)
@@ -275,7 +321,7 @@ arduino-cli compile --build-path ./build --fqbn esp32:esp32:heltec_wifi_lora_32_
 arduino-cli upload -p /dev/ttyUSB0 --fqbn esp32:esp32:heltec_wifi_lora_32_V2 --input-dir ./build .
 ```
 
-### 4. Monitor Output
+### 6. Monitor Output
 
 Arduino IDE: Tools → Serial Monitor (115200 baud)
 
@@ -380,7 +426,7 @@ The built-in display makes the system perfect for field installation where a com
 
 ## Configuration
 
-All configuration is done via constants at the top of `ESP32_HYDRO_STATIC.ino`:
+Standalone sensor configuration is done via constants at the top of `ESP32_HYDRO_STATIC.ino`. The river unit uses the same style of constants in `river_unit/river_unit.ino`, and shared LoRa radio settings live in `lora_config.h`.
 
 ```cpp
 // Water level sensor (INA219)
@@ -456,10 +502,12 @@ See [HELTEC_WIRING.md](HELTEC_WIRING.md) for detailed wiring and troubleshooting
   - Bus 1 (Wire): GPIO 17/18 for built-in OLED
   - Bus 2 (Wire1): GPIO 1/2 for INA219
 - **I2C Addresses**: INA219 (0x40), OLED (0x3C)
-- **LoRa Radio**: SX1262 (ready for future use)
+- **LoRa Radio**: SX1262 (used by the river, relay, and home unit sketches)
 - **Power Consumption**: ~200 mA (Heltec V3 + INA219 + OLED)
 
-## Code Structure
+## Standalone Code Structure
+
+This describes `ESP32_HYDRO_STATIC.ino`, the original standalone sensor/display sketch. The LoRa unit sketches follow the same sensor-reading flow, then add packet transmit, relay, or receive behavior.
 
 ```
 ESP32_HYDRO_STATIC.ino
@@ -501,20 +549,11 @@ ESP32_HYDRO_STATIC.ino
         └── Show moisture in large text
 ```
 
-## LoRa Wireless Network (NEW!)
+## LoRa Network Details
 
-This project now includes a **three-unit LoRa network** for remote river monitoring:
+The river, ridge, and home units use matching settings from `lora_config.h`. Keep the frequency, spreading factor, coding rate, sync word, and packet structure identical across all units.
 
-```
-[River Unit] --LoRa--> [Ridge Relay] --LoRa--> [Home Unit]
- (Sensors)              (Repeater)              (Display)
-```
-
-- **River Unit** (`river_unit/`) - Sensors + LoRa transmitter
-- **Ridge Relay** (`ridge_relay/`) - Battery-powered repeater with deep sleep
-- **Home Unit** (`home_unit/`) - LoRa receiver with OLED display + serial logging
-
-See **[LORA_SETUP.md](LORA_SETUP.md)** for complete setup instructions.
+See [LORA_SETUP.md](LORA_SETUP.md) for setup and upload steps, and [LORA_TECHNICAL_REFERENCE.md](LORA_TECHNICAL_REFERENCE.md) for packet format, link budget, and protocol details.
 
 **Key Features:**
 - 915 MHz LoRa (US ISM band)
@@ -556,4 +595,3 @@ This project is open source and provided as-is for educational and practical use
 - **RadioLib** - LoRa radio communication
 - Designed for **ALS-MPM-2F** hydrostatic sensor
 - Compatible with standard **4-20 mA industrial sensors**
-
