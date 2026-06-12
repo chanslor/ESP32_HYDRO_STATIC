@@ -1,5 +1,7 @@
 # ESP32 Hydrostatic River Monitoring System
 
+### *Low-cost, expendable water-monitoring endpoints for remote and developing regions — first deployment in Napo Province, in Ecuador's Amazon region*
+
 This project monitors river or tank water level with an industrial 4-20 mA hydrostatic pressure sensor, an INA219 current sensor, an LM393 moisture sensor, and Heltec WiFi LoRa 32 V3 boards. It can run as a standalone sensor with a local OLED display, or as a three-unit LoRa network that sends river readings through a ridge relay to a home receiver.
 
 The sensor firmware converts loop current into water depth, displays depth in **inches** or **feet + inches**, reports percentage full, and continues operating in moisture-only mode if the INA219 or hydrostatic sensor is not installed.
