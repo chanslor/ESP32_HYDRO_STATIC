@@ -1,4 +1,4 @@
-#line 1 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/tdeck_relay/User_Setup.h"
+#line 1 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/tdeck_relay/User_Setup.h"
 // User_Setup.h for LILYGO T-Deck
 // Copy this file to your Arduino libraries/TFT_eSPI folder
 // OR place it in the sketch folder (some versions of TFT_eSPI support this)

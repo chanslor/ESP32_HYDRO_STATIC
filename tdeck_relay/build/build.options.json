@@ -3,7 +3,7 @@
   "compiler.optimization_flags": "-Os",
   "customBuildProperties": "",
   "fqbn": "esp32:esp32:esp32s3:CDCOnBoot=cdc",
-  "hardwareFolders": "/home/mdchansl/.arduino15/packages",
-  "otherLibrariesFolders": "/home/mdchansl/Arduino/libraries",
-  "sketchLocation": "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/tdeck_relay"
+  "hardwareFolders": "/home/mdc/.arduino15/packages",
+  "otherLibrariesFolders": "/home/mdc/Arduino/libraries",
+  "sketchLocation": "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/tdeck_relay"
 }

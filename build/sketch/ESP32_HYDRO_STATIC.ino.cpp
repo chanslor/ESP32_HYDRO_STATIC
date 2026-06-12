@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#line 1 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
+#line 1 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
 /*
  * ESP32 Hydrostatic Water Level Sensor with OLED Display
  *
@@ -115,23 +115,23 @@ const int MOISTURE_WET_VALUE = 1500;   // ADC reading when sensor is in water
 const int MOISTURE_SAMPLE_COUNT = 5;   // Number of samples to average
 const unsigned long MOISTURE_READ_INTERVAL_MS = 10000;  // Read moisture every 10 seconds
 
-#line 116 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
+#line 116 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
 void setup();
-#line 214 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
+#line 214 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
 void loop();
-#line 293 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
+#line 293 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
 float getAverageCurrent();
-#line 319 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
+#line 319 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
 float calculateDepth(float current_mA);
-#line 334 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
+#line 334 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
 float calculatePercentage(float current_mA);
-#line 348 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
+#line 348 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
 int getAverageMoisture();
-#line 365 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
+#line 365 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
 float calculateMoisturePercent(int rawValue);
-#line 381 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
+#line 381 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
 void updateOLEDDisplay(float current_mA, float depthInches, float percentage, float moisturePercent, bool hasWaterLevel);
-#line 116 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
+#line 116 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/ESP32_HYDRO_STATIC.ino"
 void setup() {
   Serial.begin(115200);
   delay(1000);

@@ -1,4 +1,4 @@
-#line 1 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/home_unit/lora_config.h"
+#line 1 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/home_unit/lora_config.h"
 /*
  * LoRa Configuration for River Monitoring Network
  *

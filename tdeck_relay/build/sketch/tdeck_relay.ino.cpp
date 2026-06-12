@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#line 1 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/tdeck_relay/tdeck_relay.ino"
+#line 1 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/tdeck_relay/tdeck_relay.ino"
 /*
  * T-DECK Ridge Relay Unit - LoRa Repeater (Secondary/Backup)
  *
@@ -142,11 +142,11 @@ unsigned long lastActivityTime = 0;
 volatile bool inputDetected = false;
 
 // Interrupt handler for LoRa receive
-#line 162 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/tdeck_relay/tdeck_relay.ino"
+#line 162 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/tdeck_relay/tdeck_relay.ino"
 void setup();
-#line 331 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/tdeck_relay/tdeck_relay.ino"
+#line 331 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/tdeck_relay/tdeck_relay.ino"
 void loop();
-#line 143 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/tdeck_relay/tdeck_relay.ino"
+#line 143 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/tdeck_relay/tdeck_relay.ino"
 void IRAM_ATTR setRxFlag(void) {
   rxFlag = true;
 }

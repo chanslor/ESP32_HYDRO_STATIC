@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#line 1 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ridge_relay/ridge_relay.ino"
+#line 1 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/ridge_relay/ridge_relay.ino"
 /*
  * Ridge Relay Unit - Battery-Powered LoRa Repeater
  *
@@ -70,13 +70,13 @@ bool packetReceived = false;
 volatile bool rxFlag = false;
 
 // Interrupt handler for LoRa receive
-#line 71 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ridge_relay/ridge_relay.ino"
+#line 71 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/ridge_relay/ridge_relay.ino"
 void setRxFlag(void);
-#line 80 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ridge_relay/ridge_relay.ino"
+#line 80 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/ridge_relay/ridge_relay.ino"
 void setup();
-#line 280 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ridge_relay/ridge_relay.ino"
+#line 280 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/ridge_relay/ridge_relay.ino"
 void loop();
-#line 71 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/ridge_relay/ridge_relay.ino"
+#line 71 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/ridge_relay/ridge_relay.ino"
 void setRxFlag(void) {
   rxFlag = true;
 }

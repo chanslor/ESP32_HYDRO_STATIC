@@ -1,4 +1,4 @@
-#line 1 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/SETUP.md"
+#line 1 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/SETUP.md"
 # Heltec WiFi LoRa 32 - Hydrostatic Water Level Sensor Setup Guide
 
 ## Hardware Overview
@@ -139,10 +139,10 @@ const float MAX_DEPTH_CM = 100.0;  // Your tank depth in centimeters
 
 ```bash
 # Compile
-arduino-cli compile --fqbn esp32:esp32:heltec_wifi_lora_32_V3 .
+arduino-cli compile --build-path ./build --fqbn esp32:esp32:heltec_wifi_lora_32_V3 .
 
 # Upload (adjust port as needed)
-arduino-cli upload --fqbn esp32:esp32:heltec_wifi_lora_32_V3 --port /dev/ttyUSB0 .
+arduino-cli upload -p /dev/ttyUSB0 --fqbn esp32:esp32:heltec_wifi_lora_32_V3 --input-dir ./build .
 
 # Monitor serial output
 arduino-cli monitor -p /dev/ttyUSB0 -c baudrate=115200
@@ -203,7 +203,7 @@ The 0.96" built-in OLED shows:
 
 If INA219 is not connected, display shows moisture-only mode with large moisture reading.
 
-Display updates every 2 seconds automatically.
+Display updates every 10 seconds automatically.
 
 ## Calibration
 
@@ -304,7 +304,12 @@ const unsigned long SAMPLE_DELAY_MS = 100; // Increase for better averaging (100
 Edit the delay in loop() function:
 
 ```cpp
-delay(2000);  // 2000 ms = 2 seconds between readings
+delay(10000);  // 10000 ms = 10 seconds between readings
+```
+
+To change moisture sensor interval independently, edit:
+```cpp
+const unsigned long MOISTURE_READ_INTERVAL_MS = 10000;  // 10 seconds
 ```
 
 ### I2C Configuration (V3)
@@ -334,8 +339,29 @@ To test the system without filling the tank:
 - **Sensor rating**: Verify max pressure rating matches tank depth
 - **Weatherproofing**: Use appropriate enclosures for outdoor installations
 
+## LoRa Wireless Network
+
+This project now supports a three-unit LoRa network for remote monitoring:
+
+- **River Unit** - Sensors + LoRa transmitter
+- **Ridge Relay** - Battery-powered repeater
+- **Home Unit** - LoRa receiver + display
+
+See **[LORA_SETUP.md](LORA_SETUP.md)** for complete LoRa network setup instructions.
+
+## Vext Power for OLED
+
+Some Heltec V3 boards require enabling Vext (GPIO 36 = LOW) for the OLED to work. This is handled automatically in the LoRa sketches. If your OLED is blank but serial output works, add this before OLED init:
+
+```cpp
+pinMode(36, OUTPUT);
+digitalWrite(36, LOW);
+delay(100);
+```
+
 ## Need Help?
 
 - See [README.md](README.md) for complete project documentation
 - See [HELTEC_WIRING.md](HELTEC_WIRING.md) for detailed wiring diagrams
+- See [LORA_SETUP.md](LORA_SETUP.md) for LoRa network setup
 - Check GitHub issues for common problems and solutions

@@ -1,0 +1,9 @@
+{
+  "additionalFiles": "../..",
+  "compiler.optimization_flags": "-Os",
+  "customBuildProperties": "",
+  "fqbn": "esp32:esp32:heltec_wifi_lora_32_V3",
+  "hardwareFolders": "/home/mdc/.arduino15/packages",
+  "otherLibrariesFolders": "/home/mdc/Arduino/libraries",
+  "sketchLocation": "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/river_unit"
+}

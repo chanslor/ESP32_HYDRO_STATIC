@@ -3,7 +3,7 @@
   "compiler.optimization_flags": "-Os",
   "customBuildProperties": "",
   "fqbn": "esp32:esp32:heltec_wifi_lora_32_V3",
-  "hardwareFolders": "/home/mdchansl/.arduino15/packages",
-  "otherLibrariesFolders": "/home/mdchansl/Arduino/libraries",
-  "sketchLocation": "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/home_unit"
+  "hardwareFolders": "/home/mdc/.arduino15/packages",
+  "otherLibrariesFolders": "/home/mdc/Arduino/libraries",
+  "sketchLocation": "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/home_unit"
 }

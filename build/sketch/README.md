@@ -1,4 +1,4 @@
-#line 1 "/home/mdchansl/IOT/ESP32_HYDRO_STATIC/README.md"
+#line 1 "/chanslor/mdc/IOT/RIVER/ESP32_HYDRO_STATIC/README.md"
 # ESP32 Hydrostatic Water Level Sensor with OLED Display
 
 A complete water depth measurement system using an industrial 4-20 mA hydrostatic pressure sensor, INA219 current sensor module, LM393 soil moisture sensor, and Heltec WiFi LoRa 32 V3 board with built-in OLED display. This system accurately measures water depth in tanks and soil/rain moisture levels, displaying real-time readings in **inches/feet** on the OLED screen and via serial output.
@@ -204,7 +204,7 @@ The hydrostatic sensor outputs:
 4. **I2C Communication**: ESP32 reads current value from INA219
 5. **Averaging**: 10 samples averaged over 1 second for stability
 6. **Conversion**: Linear interpolation converts mA to depth
-7. **Display**: Results shown on OLED display and via serial output every 2 seconds
+7. **Display**: Results shown on OLED display and via serial output every 10 seconds
 
 ### Calculation Formula
 
@@ -266,14 +266,14 @@ The display will automatically convert to inches/feet.
 
 **Using arduino-cli (for V3):**
 ```bash
-arduino-cli compile --fqbn esp32:esp32:heltec_wifi_lora_32_V3 .
-arduino-cli upload --fqbn esp32:esp32:heltec_wifi_lora_32_V3 --port /dev/ttyUSB0 .
+arduino-cli compile --build-path ./build --fqbn esp32:esp32:heltec_wifi_lora_32_V3 .
+arduino-cli upload -p /dev/ttyUSB0 --fqbn esp32:esp32:heltec_wifi_lora_32_V3 --input-dir ./build .
 ```
 
 **Using arduino-cli (for V2):**
 ```bash
-arduino-cli compile --fqbn esp32:esp32:heltec_wifi_lora_32_V2 .
-arduino-cli upload --fqbn esp32:esp32:heltec_wifi_lora_32_V2 --port /dev/ttyUSB0 .
+arduino-cli compile --build-path ./build --fqbn esp32:esp32:heltec_wifi_lora_32_V2 .
+arduino-cli upload -p /dev/ttyUSB0 --fqbn esp32:esp32:heltec_wifi_lora_32_V2 --input-dir ./build .
 ```
 
 ### 4. Monitor Output
@@ -372,7 +372,7 @@ The Heltec's built-in 0.96" OLED provides clear, real-time visual feedback:
   - Under 12": Shows "8.5 in"
   - 12" or more: Shows "1 ft 7.8 in"
 - **Percentage**: Tank fill percentage in bottom-right corner
-- **Update Rate**: Refreshes every 2 seconds
+- **Update Rate**: Refreshes every 10 seconds
 - **High Contrast**: White text on black background for outdoor visibility
 - **Low Power**: Built-in OLED only draws ~20 mA
 - **No External Display Needed**: Everything integrated on the Heltec board
@@ -395,13 +395,15 @@ const unsigned long SAMPLE_DELAY_MS = 100;  // Delay between samples
 const int MOISTURE_DRY_VALUE = 4095;   // ADC reading when sensor is dry
 const int MOISTURE_WET_VALUE = 1500;   // ADC reading when sensor is in water
 const int MOISTURE_SAMPLE_COUNT = 5;   // Number of samples to average
+const unsigned long MOISTURE_READ_INTERVAL_MS = 10000;  // Read moisture every 10 seconds
 ```
 
 **Typical Adjustments:**
 - `MAX_DEPTH_CM`: Set to your actual tank depth
 - `SAMPLE_COUNT`: Increase for smoother readings (slower response)
 - `MOISTURE_WET_VALUE`: Calibrate by reading raw ADC when probe is in water
-- Loop `delay(2000)`: Change reading frequency
+- Loop `delay(10000)`: Change main loop reading frequency (currently 10 seconds)
+- `MOISTURE_READ_INTERVAL_MS`: Change moisture sensor reading interval
 
 **Moisture Sensor Calibration:**
 1. Run the system and observe the "raw" value in serial output
@@ -436,13 +438,13 @@ See [HELTEC_WIRING.md](HELTEC_WIRING.md) for detailed wiring and troubleshooting
 - **Measurement Range**: 4-20 mA (industry standard)
 - **Resolution**: ±0.8 mA (INA219 accuracy)
 - **Depth Resolution**: ~0.5% of tank depth
-- **Update Rate**: 2 seconds per reading
+- **Update Rate**: 10 seconds per reading
 - **Averaging**: 10 samples over 1 second
 
 **Display Specifications:**
 - **OLED Type**: SSD1306, 128x64 pixels, monochrome
 - **Display Size**: 0.96 inches diagonal
-- **Refresh Rate**: 2 seconds
+- **Refresh Rate**: 10 seconds
 - **Visibility**: High contrast, outdoor readable
 
 **System Specifications (Heltec V3):**
@@ -500,14 +502,32 @@ ESP32_HYDRO_STATIC.ino
         └── Show moisture in large text
 ```
 
+## LoRa Wireless Network (NEW!)
+
+This project now includes a **three-unit LoRa network** for remote river monitoring:
+
+```
+[River Unit] --LoRa--> [Ridge Relay] --LoRa--> [Home Unit]
+ (Sensors)              (Repeater)              (Display)
+```
+
+- **River Unit** (`river_unit/`) - Sensors + LoRa transmitter
+- **Ridge Relay** (`ridge_relay/`) - Battery-powered repeater with deep sleep
+- **Home Unit** (`home_unit/`) - LoRa receiver with OLED display + serial logging
+
+See **[LORA_SETUP.md](LORA_SETUP.md)** for complete setup instructions.
+
+**Key Features:**
+- 915 MHz LoRa (US ISM band)
+- Up to 10km range with proper antennas
+- Battery-powered relay with configurable deep sleep
+- Displays signal strength (RSSI) for both links
+- Automatic packet relay and error detection
+
 ## Future Enhancements
 
 Possible additions to this project:
-- **LoRa wireless transmission** - Built-in SX1262 LoRa radio for:
-  - Long-range data transmission (up to 10km line-of-sight)
-  - Remote tank monitoring without WiFi infrastructure
-  - LoRaWAN integration for IoT networks
-  - Battery-powered remote installations
+- **LoRaWAN integration** - Connect to The Things Network
 - **WiFi connectivity** for local network monitoring
 - **MQTT publishing** to IoT platforms (Home Assistant, Node-RED, etc.)
 - **Web server** for browser-based access and configuration
@@ -534,6 +554,7 @@ This project is open source and provided as-is for educational and practical use
 - **Adafruit INA219 Library** - High-precision current sensing
 - **Adafruit SSD1306 Library** - OLED display driver
 - **Adafruit GFX Library** - Graphics primitives for display
+- **RadioLib** - LoRa radio communication
 - Designed for **ALS-MPM-2F** hydrostatic sensor
 - Compatible with standard **4-20 mA industrial sensors**
 
