@@ -570,6 +570,12 @@ See [LORA_SETUP.md](LORA_SETUP.md) for setup and upload steps, and [LORA_TECHNIC
 - Displays signal strength (RSSI) for both links
 - Automatic packet relay and error detection
 
+## Field Testing
+
+**First field test: success!** The initial end-to-end deployment validated the full LoRa monitoring chain — the river unit read its sensors, transmitted readings through the ridge relay, and the home unit received and displayed live water-level data. The home concept proved out in practice, confirming the low-cost, expendable endpoint design works in a real-world setting and is ready for the first field deployment in Napo Province, Ecuador.
+
+![Home concept field test](Home-concpet-Locust.png)
+
 ## Future Enhancements
 
 Possible additions to this project:
